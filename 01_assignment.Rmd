@@ -32,7 +32,7 @@ When you finish the assignment, remove the `#` from the options chunk at the top
 Read the [Quick Intro](https://advanced-ds-in-r.netlify.app/posts/2021-01-28-gitgithub/#quick-intro) section of the Using git and GitHub in R Studio set of Course Materials. Set up Git and GitHub and create a GitHub repo and associated R Project (done for you when you clone the repo) for this homework assignment. Put this file into the project. You should always open the R Project (.Rproj) file when you work with any of the files in the project. 
 
 **Task**: Below, post a link to your GitHub repository.
-
+[]https://github.com/willmoscato/AdvancedDataScienceHW1.git
 
 ## Creating a website
 
@@ -44,6 +44,7 @@ Once you've chosen that, you might want to look through some of the other *Build
 **Tasks**:
 
 * Include a link to your website below. (If anyone does not want to post a website publicly, please talk to me and we will find a different solution).  
+[]https://willmoscatoadvanceddatascience.netlify.app/
 
 * Listen to at least the first 20 minutes of "Building a Career in Data Science, Chapter 4: Building a Portfolio". Go to the main [podcast website](https://podcast.bestbook.cool/) and navigate to a podcast provider that works for you to find that specific episode. Write 2-3 sentences reflecting on what they discussed and why creating a website might be helpful for you.  
 
