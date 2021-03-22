@@ -112,14 +112,14 @@ hotel_recipe <- recipe(is_canceled ~ . , data = hotel_training) %>%
   agent = ifelse(agent == "NULL",1,0),
   company = ifelse(company == "NULL",1,0),
   country = fct_lump_n(country, 5)) %>% 
-  step_normalize(all_outcomes(),
+  step_normalize(all_predictors(),
                  -all_nominal()) %>% 
   step_dummy(all_nominal(),
-             -all_outcomes()) %>% 
-  prep() %>% 
-  juice()
+             -all_outcomes())
 
-hotel_recipe
+hotel_recipe %>% 
+  prep(hotel_training) %>% 
+  juice()
 ```
 
 
@@ -128,6 +128,23 @@ hotel_recipe
 * In general, why would we want to use LASSO instead of regular logistic regression? (HINT: think about what happens to the coefficients).  
 * Define the model type, set the engine, set the `penalty` argument to `tune()` as a placeholder, and set the mode.  
 * Create a workflow with the recipe and model.  
+
+```{r}
+hotel_lasso <- linear_reg(mixture = 1) %>% 
+  set_engine("glmnet") %>% 
+  set_args(penalty = tune()) %>% 
+  set_mode("regression")
+
+hotel_lasso
+
+hotel_lasso_wf <- 
+  workflow() %>% 
+  add_recipe(hotel_recipe) %>% 
+  add_model(hotel_lasso)
+
+hotel_lasso_wf
+```
+
 
 6. In this step, we'll tune the model and fit the model using the best tuning parameter to the entire training dataset.
 
