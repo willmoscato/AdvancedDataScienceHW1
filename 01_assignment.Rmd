@@ -112,7 +112,7 @@ hotel_recipe <- recipe(is_canceled ~ . , data = hotel_training) %>%
   agent = ifelse(agent == "NULL",1,0),
   company = ifelse(company == "NULL",1,0),
   country = fct_lump_n(country, 5)) %>% 
-  step_normalize(all_predictors(),
+  step_normalize(all_outcomes(),
                  -all_nominal()) %>% 
   step_dummy(all_nominal(),
              -all_outcomes()) %>% 
