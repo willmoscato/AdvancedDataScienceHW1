@@ -32,7 +32,7 @@ When you finish the assignment, remove the `#` from the options chunk at the top
 Read the [Quick Intro](https://advanced-ds-in-r.netlify.app/posts/2021-01-28-gitgithub/#quick-intro) section of the Using git and GitHub in R Studio set of Course Materials. Set up Git and GitHub and create a GitHub repo and associated R Project (done for you when you clone the repo) for this homework assignment. Put this file into the project. You should always open the R Project (.Rproj) file when you work with any of the files in the project. 
 
 **Task**: Below, post a link to your GitHub repository.
-[]https://github.com/willmoscato/AdvancedDataScienceHW1.git
+[Github Repo](https://github.com/willmoscato/AdvancedDataScienceHW1.git)
 
 ## Creating a website
 
@@ -44,7 +44,7 @@ Once you've chosen that, you might want to look through some of the other *Build
 **Tasks**:
 
 * Include a link to your website below. (If anyone does not want to post a website publicly, please talk to me and we will find a different solution).  
-[]https://willmoscatoadvanceddatascience.netlify.app/
+[My Website](https://willmoscatoadvanceddatascience.netlify.app/)
 
 * Listen to at least the first 20 minutes of "Building a Career in Data Science, Chapter 4: Building a Portfolio". Go to the main [podcast website](https://podcast.bestbook.cool/) and navigate to a podcast provider that works for you to find that specific episode. Write 2-3 sentences reflecting on what they discussed and why creating a website might be helpful for you.  
 
@@ -61,7 +61,18 @@ Read through and follow along with the [Machine Learning review with an intro to
   _ What are some problems that might exist with the data? You might think about how it was collected and who did the collecting.  
   - If we construct a model, what type of conclusions will be able to draw from it?  
   
+  \\
+  I think that the previous cancellations and previous bookings not canceled variables will be the most predictive because it can tell us if the person booking the room has a pattern of canceling bookings. Also the difference in the date booked and when the booking is for might be quite predictive because a booking that is further away from the present gives more time to have plans change for people. One problem with the dataset could be the reservation status variable because it seems redundant. 
+  
 2. Create some exploratory plots or table summaries of the data, concentrating most on relationships with the response variable. Keep in mind the response variable is numeric, 0 or 1. You may want to make it categorical (you also may not). Be sure to also examine missing values or other interesting values.  
+
+```{r}
+hotels %>% 
+  group_by(is_canceled) %>% 
+  ggplot(aes(y = previous_cancellations))+
+  geom_bar()
+```
+
 
 3. First, we will do a couple things to get the data ready, including making the outcome a factor (needs to be that way for logistic regression), removing the year variable and some reservation status variables, and removing missing values (not NULLs but true missing values). Split the data into a training and test set, stratifying on the outcome variable, `is_canceled`. Since we have a lot of data, we're going to split the data 50/50 between training and test. I have already `set.seed()` for you. Be sure to use `hotels_mod` in the splitting.
 
@@ -77,6 +88,9 @@ hotels_mod <- hotels %>%
   select(-n_miss_all)
 
 set.seed(494)
+hotel_split <- initial_split(hotels_mod, prop = .5, strata = is_canceled)
+hotel_training <- training(hotel_split)
+hotel_testing <- testing(hotel_split)
 ```
 
 4. In this next step, we are going to do the pre-processing. Usually, I won't tell you exactly what to do here, but for your first exercise, I'll tell you the steps. 
@@ -89,6 +103,25 @@ set.seed(494)
 * Use `step_normalize()` to center and scale all the non-categorical predictor variables. (Do this BEFORE creating dummy variables. When I tried to do it after, I ran into an error - I'm still investigating why.)
 * Create dummy variables for all factors/categorical predictor variables (make sure you have `-all_outcomes()` in this part!!).  
 * Use the `prep()` and `juice()` functions to apply the steps to the training data just to check that everything went as planned.
+
+```{r}
+hotel_recipe <- recipe(is_canceled ~ . , data = hotel_training) %>% 
+  step_mutate(children = ifelse(children == 0,0,1),
+  babies = ifelse(babies == 0,0,1),
+  previous_cancelations = ifelse(previous_cancellations == 0,0,1),
+  agent = ifelse(agent == "NULL",1,0),
+  company = ifelse(company == "NULL",1,0),
+  country = fct_lump_n(country, 5)) %>% 
+  step_normalize(all_predictors(),
+                 -all_nominal()) %>% 
+  step_dummy(all_nominal(),
+             -all_outcomes()) %>% 
+  prep() %>% 
+  juice()
+
+hotel_recipe
+```
+
 
 5. In this step we will set up a LASSO model and workflow.
 
