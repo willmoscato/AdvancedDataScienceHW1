@@ -48,6 +48,9 @@ Once you've chosen that, you might want to look through some of the other *Build
 
 * Listen to at least the first 20 minutes of "Building a Career in Data Science, Chapter 4: Building a Portfolio". Go to the main [podcast website](https://podcast.bestbook.cool/) and navigate to a podcast provider that works for you to find that specific episode. Write 2-3 sentences reflecting on what they discussed and why creating a website might be helpful for you.  
 
+\\
+Having something that is public can show that you can do the things that you say that you can do. I think that this will be useful to me in forcing me to make my code and my projects more accessible to everyone.
+
 * (Optional) Create an R package with your own customized `gpplot2` theme! Write a post on your website about why you made the choices you did for the theme. See the *Building an R package* and *Custom `ggplot2` themes* [resources](https://advanced-ds-in-r.netlify.app/resources.html). 
 
 ## Machine Learning review and intro to `tidymodels`
@@ -108,7 +111,7 @@ hotel_testing <- testing(hotel_split)
 hotel_recipe <- recipe(is_canceled ~ . , data = hotel_training) %>% 
   step_mutate(children = ifelse(children == 0,0,1),
   babies = ifelse(babies == 0,0,1),
-  previous_cancelations = ifelse(previous_cancellations == 0,0,1),
+  previous_cancellations = ifelse(previous_cancellations == 0,0,1),
   agent = ifelse(agent == "NULL",1,0),
   company = ifelse(company == "NULL",1,0),
   country = fct_lump_n(country, 5)) %>% 
@@ -156,8 +159,25 @@ hotel_lasso_wf
 
 ```{r}
 set.seed(494) # for reproducibility
+hotel_cv <- vfold_cv(hotel_training, v = 5)
 
+penalty_grid <- grid_regular(penalty(),
+                             levels = 10)
 
+penalty_grid
+
+hotel_lasso_tune <- 
+  hotel_lasso_wf %>% 
+  tune_grid(
+    resamples = hotel_cv,
+    grid = penalty_grid
+    )
+
+hotel_lasso_tune
+
+hotel_lasso_tune %>% 
+  collect_metrics() %>% 
+  filter(.metric == "rmse")
 ```
 
 
