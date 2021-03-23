@@ -71,8 +71,8 @@ Read through and follow along with the [Machine Learning review with an intro to
 
 ```{r}
 hotels %>% 
-  group_by(is_canceled) %>% 
-  ggplot(aes(y = previous_cancellations))+
+  filter(is_canceled == 1) %>%  
+  ggplot(aes(y = children))+
   geom_bar()
 ```
 
@@ -128,7 +128,12 @@ hotel_recipe %>%
 
 5. In this step we will set up a LASSO model and workflow.
 
-* In general, why would we want to use LASSO instead of regular logistic regression? (HINT: think about what happens to the coefficients).  
+* In general, why would we want to use LASSO instead of regular logistic regression? (HINT: think about what happens to the coefficients). 
+
+\\
+We want to use LASSO instead of regular logistic regression in order to compress coefficients that would lead to overfitting of the model.
+
+\\
 * Define the model type, set the engine, set the `penalty` argument to `tune()` as a placeholder, and set the mode.  
 * Create a workflow with the recipe and model.  
 
