@@ -220,9 +220,43 @@ hotel_lasso_final_mod %>%
 7. Now that we have a model, let's evaluate it a bit more. All we have looked at so far is the cross-validated accuracy from the previous step. 
 
 * Create a variable importance graph. Which variables show up as the most important? Are you surprised?  
+
+```{r}
+hotel_lasso_final_mod %>% 
+  pull_workflow_fit() %>% 
+  vip()
+```
+
+\\
+The most important variables are if the room reserved is type, if the deposit was non refundable, and previous cancellations. I am slightly surprised by the importance of the room type, but the other two make lots of sense.
+
 * Use the `last_fit()` function to fit the final model and then apply it to the testing data. Report the metrics from the testing data using the `collet_metrics()` function. How do they compare to the cross-validated metrics?
+
+```{r}
+hotel_lasso_test <- hotel_lasso_final_wf %>% 
+  last_fit(hotel_split)
+
+hotel_lasso_test %>% 
+  collect_metrics()
+```
+
 * Use the `collect_predictions()` function to find the predicted probabilities and classes for the test data. Save this to a new dataset called `preds`. Then, use the `conf_mat()` function from `dials` (part of `tidymodels`) to create a confusion matrix showing the predicted classes vs. the true classes. What is the true positive rate (sensitivity)? What is the true negative rate (specificity)? See this [Wikipedia](https://en.wikipedia.org/wiki/Confusion_matrix) reference if you (like me) tend to forget these definitions.
+
+```{r}
+preds <- hotel_lasso_test %>% 
+  collect_predictions()
+
+preds %>% 
+  conf_mat(.pred_class, is_canceled)
+```
+
 * Use the `preds` dataset you just created to create a density plot of the predicted probabilities of canceling (the variable is called `.pred_1`), filling by `is_canceled`. Use an `alpha = .5` and `color = NA` in the `geom_density()`. Answer these questions: a. What would this graph look like for a model with an accuracy that was close to 1? b. Our predictions are classified as canceled if their predicted probability of canceling is greater than .5. If we wanted to have a high true positive rate, should we make the cutoff for predicted as canceled higher or lower than .5? c. What happens to the true negative rate if we try to get a higher true positive rate? 
+
+```{r}
+preds %>% 
+  ggplot(aes(x = .pred_1, fill = is_canceled))+
+  geom_density(alpha = 0.5, color = NA)
+```
 
 8. Let's say that this model is going to be applied to bookings 14 days in advance of their arrival at each hotel, and someone who works for the hotel will make a phone call to the person who made the booking. During this phone call, they will try to assure that the person will be keeping their reservation or that they will be canceling in which case they can do that now and still have time to fill the room. How should the hotel go about deciding who to call? How could they measure whether it was worth the effort to do the calling? Can you think of another way they might use the model? 
 
