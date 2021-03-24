@@ -241,4 +241,7 @@ Listen to Dr. Rachel Thomas's  [Bias and Fairness lecture](https://ethics.fast.a
 * Why is it important that we pay attention to bias and fairness when studying data science?  
 * Is there a type of bias Dr. Thomas discussed that was new to you? Can you think about places you have seen these types of biases?
 
+\\
+It is important to pay attention to bias and fairness when studying data science so that our models are actually predicting what we want them to. If there are unfair biases that go into our models then our models will amplify these biases and only output the bias that is put in. Thus, the model is not actually outputting what we want it to. Measurement bias was a new type of bias that I had never heard of. I think that we don't normally think about the bias of what we are measuring, but rather the bias in how we analyze the data. We often think that the data itself cannot be wrong, but if it is measured improperly/ if we are measuring things we don't mean to measure the data can be flawed.
+
 
