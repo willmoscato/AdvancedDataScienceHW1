@@ -91,7 +91,7 @@ hotels_mod <- hotels %>%
   select(-n_miss_all)
 
 set.seed(494)
-hotel_split <- initial_split(hotels_mod, prop = .5, strata = is_canceled)
+hotel_split <- initial_split(hotels_mod, prop = .5, strata = "is_canceled")
 hotel_training <- training(hotel_split)
 hotel_testing <- testing(hotel_split)
 ```
@@ -109,11 +109,11 @@ hotel_testing <- testing(hotel_split)
 
 ```{r}
 hotel_recipe <- recipe(is_canceled ~ . , data = hotel_training) %>% 
-  step_mutate(children = ifelse(children == 0,0,1),
-  babies = ifelse(babies == 0,0,1),
-  previous_cancellations = ifelse(previous_cancellations == 0,0,1),
-  agent = ifelse(agent == "NULL",1,0),
-  company = ifelse(company == "NULL",1,0),
+  step_mutate(children = as.factor(ifelse(children == 0,0,1)),
+  babies = as.factor(ifelse(babies == 0,0,1)),
+  previous_cancellations = as.factor(ifelse(previous_cancellations == 0,0,1)),
+  agent = as.factor(ifelse(agent == "NULL",0,1)),
+  company = as.factor(ifelse(company == "NULL",0,1)),
   country = fct_lump_n(country, 5)) %>% 
   step_normalize(all_predictors(),
                  -all_nominal()) %>% 
@@ -138,7 +138,7 @@ We want to use LASSO instead of regular logistic regression in order to compress
 * Create a workflow with the recipe and model.  
 
 ```{r}
-hotel_lasso <- linear_reg(mixture = 1) %>% 
+hotel_lasso <- logistic_reg(mixture = 1) %>% 
   set_engine("glmnet") %>% 
   set_args(penalty = tune()) %>% 
   set_mode("regression")
@@ -179,11 +179,42 @@ hotel_lasso_tune <-
     )
 
 hotel_lasso_tune
+```
 
+```{r}
 hotel_lasso_tune %>% 
   collect_metrics() %>% 
-  filter(.metric == "rmse")
+  filter(.metric == "rmse") %>% 
+  ggplot(aes(x = penalty, y = mean)) +
+  geom_point() +
+  geom_line() +
+  scale_x_log10(
+   breaks = scales::trans_breaks("log10", function(x) 10^x),
+   labels = scales::trans_format("log10",scales::math_format(10^.x))) +
+  labs(x = "penalty", y = "rmse")
 ```
+```{r}
+hotel_lasso_tune %>% 
+  show_best(metric = "rmse")
+
+best <- hotel_lasso_tune %>% 
+  select_best(metric = "rmse")
+```
+```{r}
+hotel_lasso_final_wf <- hotel_lasso_wf %>% 
+  finalize_workflow(best)
+
+hotel_lasso_final_wf
+```
+```{r}
+hotel_lasso_final_mod <- hotel_lasso_final_wf %>% 
+  fit(data = hotel_training)
+
+hotel_lasso_final_mod %>% 
+  pull_workflow_fit() %>% 
+  tidy() 
+```
+
 
 
 7. Now that we have a model, let's evaluate it a bit more. All we have looked at so far is the cross-validated accuracy from the previous step. 
