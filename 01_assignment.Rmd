@@ -141,7 +141,7 @@ We want to use LASSO instead of regular logistic regression in order to compress
 hotel_lasso <- logistic_reg(mixture = 1) %>% 
   set_engine("glmnet") %>% 
   set_args(penalty = tune()) %>% 
-  set_mode("regression")
+  set_mode("classification")
 
 hotel_lasso
 
@@ -184,7 +184,7 @@ hotel_lasso_tune
 ```{r}
 hotel_lasso_tune %>% 
   collect_metrics() %>% 
-  filter(.metric == "rmse") %>% 
+  filter(.metric == "accuracy") %>% 
   ggplot(aes(x = penalty, y = mean)) +
   geom_point() +
   geom_line() +
@@ -195,10 +195,10 @@ hotel_lasso_tune %>%
 ```
 ```{r}
 hotel_lasso_tune %>% 
-  show_best(metric = "rmse")
+  show_best(metric = "accuracy")
 
 best <- hotel_lasso_tune %>% 
-  select_best(metric = "rmse")
+  select_best(metric = "accuracy")
 ```
 ```{r}
 hotel_lasso_final_wf <- hotel_lasso_wf %>% 
