@@ -107,7 +107,7 @@ hotels_mod <- hotels %>%
   select(-n_miss_all)
 
 set.seed(494)
-hotel_split <- initial_split(hotels_mod, prop = .5, strata = "is_canceled")
+hotel_split <- initial_split(hotels_mod, prop = .5, strata = is_canceled)
 hotel_training <- training(hotel_split)
 hotel_testing <- testing(hotel_split)
 ```
