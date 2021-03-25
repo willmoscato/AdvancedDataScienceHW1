@@ -9,7 +9,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-#knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
 ```
 
 ```{r libraries}
@@ -48,10 +48,9 @@ Once you've chosen that, you might want to look through some of the other *Build
 
 * Listen to at least the first 20 minutes of "Building a Career in Data Science, Chapter 4: Building a Portfolio". Go to the main [podcast website](https://podcast.bestbook.cool/) and navigate to a podcast provider that works for you to find that specific episode. Write 2-3 sentences reflecting on what they discussed and why creating a website might be helpful for you.  
 
-\\
-Having something that is public can show that you can do the things that you say that you can do. I think that this will be useful to me in forcing me to make my code and my projects more accessible to everyone.
+\
+**Having something that is public can show that you can do the things that you say that you can do. I think that this will be useful to me in forcing me to make my code and my projects more accessible to everyone.**
 
-* (Optional) Create an R package with your own customized `gpplot2` theme! Write a post on your website about why you made the choices you did for the theme. See the *Building an R package* and *Custom `ggplot2` themes* [resources](https://advanced-ds-in-r.netlify.app/resources.html). 
 
 ## Machine Learning review and intro to `tidymodels`
 
@@ -64,15 +63,32 @@ Read through and follow along with the [Machine Learning review with an intro to
   _ What are some problems that might exist with the data? You might think about how it was collected and who did the collecting.  
   - If we construct a model, what type of conclusions will be able to draw from it?  
   
-  \\
-  I think that the previous cancellations and previous bookings not canceled variables will be the most predictive because it can tell us if the person booking the room has a pattern of canceling bookings. Also the difference in the date booked and when the booking is for might be quite predictive because a booking that is further away from the present gives more time to have plans change for people. One problem with the dataset could be the reservation status variable because it seems redundant. 
+  \
+  **I think that the previous cancellations and previous bookings not canceled variables will be the most predictive because it can tell us if the person booking the room has a pattern of canceling bookings. Also the difference in the date booked and when the booking is for might be quite predictive because a booking that is further away from the present gives more time to have plans change for people. One problem with the dataset could be the reservation status variable because it seems redundant. There is also no id on each of the inputs, so I don't know if anything has been double counted. If we construct a model we will be able to draw out who is more likely to cancel their reservations at the hotels. **
   
 2. Create some exploratory plots or table summaries of the data, concentrating most on relationships with the response variable. Keep in mind the response variable is numeric, 0 or 1. You may want to make it categorical (you also may not). Be sure to also examine missing values or other interesting values.  
 
 ```{r}
 hotels %>% 
-  filter(is_canceled == 1) %>%  
-  ggplot(aes(y = children))+
+  group_by(previous_cancellations) %>% 
+  summarise(count = n())
+```
+
+```{r}
+hotels %>% 
+  add_n_miss() %>% 
+  filter(n_miss_all == 1) %>% 
+  select(n_miss_all, children)
+```
+
+```{r}
+hotels %>% 
+  ggplot(aes(x = hotel, fill = customer_type))+
+  geom_bar()
+```
+```{r}
+hotels %>% 
+  ggplot(aes(x = arrival_date_month, fill = arrival_date_month))+
   geom_bar()
 ```
 
@@ -130,10 +146,10 @@ hotel_recipe %>%
 
 * In general, why would we want to use LASSO instead of regular logistic regression? (HINT: think about what happens to the coefficients). 
 
-\\
-We want to use LASSO instead of regular logistic regression in order to compress coefficients that would lead to overfitting of the model.
+\
+**We want to use LASSO instead of regular logistic regression in order to compress coefficients that would lead to overfitting of the model.**
 
-\\
+\
 * Define the model type, set the engine, set the `penalty` argument to `tune()` as a placeholder, and set the mode.  
 * Create a workflow with the recipe and model.  
 
@@ -162,6 +178,8 @@ hotel_lasso_wf
 * Use the `collect_metrics()` function to collect all the metrics from the previous step and create a plot with the accuracy on the y-axis and the penalty term on the x-axis. Put the x-axis on the log scale.  
 * Use the `select_best()` function to find the best tuning parameter, fit the model using that tuning parameter to the entire training set (HINT: `finalize_workflow()` and `fit()`), and display the model results using `pull_workflow_fit()` and `tidy()`. Are there some variables with coefficients of 0?
 
+\
+**Yes there are some 0 coefficients: arrival_date_month_September, market_segment_Groups, market_segment_Unidentified, distribution_channel_Undefined, assigned_room_type_L. **
 ```{r}
 set.seed(494) # for reproducibility
 hotel_cv <- vfold_cv(hotel_training, v = 5)
@@ -191,7 +209,7 @@ hotel_lasso_tune %>%
   scale_x_log10(
    breaks = scales::trans_breaks("log10", function(x) 10^x),
    labels = scales::trans_format("log10",scales::math_format(10^.x))) +
-  labs(x = "penalty", y = "rmse")
+  labs(x = "penalty", y = "accuracy")
 ```
 ```{r}
 hotel_lasso_tune %>% 
@@ -227,8 +245,8 @@ hotel_lasso_final_mod %>%
   vip()
 ```
 
-\\
-The most important variables are if the room reserved is type, if the deposit was non refundable, and previous cancellations. I am slightly surprised by the importance of the room type, but the other two make lots of sense.
+\
+**The most important variables are if the room reserved is type, if the deposit was non refundable, and previous cancellations. I am slightly surprised by the importance of the room type, but the other two make lots of sense.**
 
 * Use the `last_fit()` function to fit the final model and then apply it to the testing data. Report the metrics from the testing data using the `collet_metrics()` function. How do they compare to the cross-validated metrics?
 
@@ -240,17 +258,28 @@ hotel_lasso_test %>%
   collect_metrics()
 ```
 
+\
+**Both of these are higher than the cv accuracy, but only by a tiny bit. 0.813 vs 0.815.**
+
 * Use the `collect_predictions()` function to find the predicted probabilities and classes for the test data. Save this to a new dataset called `preds`. Then, use the `conf_mat()` function from `dials` (part of `tidymodels`) to create a confusion matrix showing the predicted classes vs. the true classes. What is the true positive rate (sensitivity)? What is the true negative rate (specificity)? See this [Wikipedia](https://en.wikipedia.org/wiki/Confusion_matrix) reference if you (like me) tend to forget these definitions.
+
+\
+**The sensitivity is 65%. The specificity is 91.2%.**
 
 ```{r}
 preds <- hotel_lasso_test %>% 
   collect_predictions()
 
 preds %>% 
-  conf_mat(.pred_class, is_canceled)
+  conf_mat(is_canceled, .pred_class)
 ```
 
 * Use the `preds` dataset you just created to create a density plot of the predicted probabilities of canceling (the variable is called `.pred_1`), filling by `is_canceled`. Use an `alpha = .5` and `color = NA` in the `geom_density()`. Answer these questions: a. What would this graph look like for a model with an accuracy that was close to 1? b. Our predictions are classified as canceled if their predicted probability of canceling is greater than .5. If we wanted to have a high true positive rate, should we make the cutoff for predicted as canceled higher or lower than .5? c. What happens to the true negative rate if we try to get a higher true positive rate? 
+
+\
+**a. If the accuracy was close to 1 there would be two very high peaks at 0 and 1 with very little density in the middle.**
+**b. We would need to make it higher than .5 to have a higher sensitivity.**
+**c. If we try to have a higher sensitivity we would lower our specificity.**
 
 ```{r}
 preds %>% 
@@ -258,9 +287,15 @@ preds %>%
   geom_density(alpha = 0.5, color = NA)
 ```
 
-8. Let's say that this model is going to be applied to bookings 14 days in advance of their arrival at each hotel, and someone who works for the hotel will make a phone call to the person who made the booking. During this phone call, they will try to assure that the person will be keeping their reservation or that they will be canceling in which case they can do that now and still have time to fill the room. How should the hotel go about deciding who to call? How could they measure whether it was worth the effort to do the calling? Can you think of another way they might use the model? 
+8. Let's say that this model is going to be applied to bookings 14 days in advance of their arrival at each hotel, and someone who works for the hotel will make a phone call to the person who made the booking. During this phone call, they will try to assure that the person will be keeping their reservation or that they will be canceling in which case they can do that now and still have time to fill the room. How should the hotel go about deciding who to call? How could they measure whether it was worth the effort to do the calling? Can you think of another way they might use the model?
+
+\
+**I think that using this model would be beneficial in calling the people who are predicted to cancel if the type of hotel that you run can easily fill the room in 14 days. You could measure the efficacy of this by measuring how often when someone you call actually cancels you are able to fill that room for the time they booked it for. Another way that you could use this model is seeing how to lower the amounts of people who cancel. Or you can use it to assign rooms, so that the best rooms for you are always filled.**
 
 9. How might you go about questioning and evaluating the model in terms of fairness? Are there any questions you would like to ask of the people who collected the data? 
+
+\
+**I think that the most important thing is asking how the previous cancellations variable was acquired, making sure that it was not acquired in an unfair fashion. Also, I would want to make sure there is no bias that is discriminating against families with children or people that originate from a certain country.**
 
 
 
@@ -275,7 +310,7 @@ Listen to Dr. Rachel Thomas's  [Bias and Fairness lecture](https://ethics.fast.a
 * Why is it important that we pay attention to bias and fairness when studying data science?  
 * Is there a type of bias Dr. Thomas discussed that was new to you? Can you think about places you have seen these types of biases?
 
-\\
-It is important to pay attention to bias and fairness when studying data science so that our models are actually predicting what we want them to. If there are unfair biases that go into our models then our models will amplify these biases and only output the bias that is put in. Thus, the model is not actually outputting what we want it to. Measurement bias was a new type of bias that I had never heard of. I think that we don't normally think about the bias of what we are measuring, but rather the bias in how we analyze the data. We often think that the data itself cannot be wrong, but if it is measured improperly/ if we are measuring things we don't mean to measure the data can be flawed.
+\
+**It is important to pay attention to bias and fairness when studying data science so that our models are actually predicting what we want them to. If there are unfair biases that go into our models then our models will amplify these biases and only output the bias that is put in. Thus, the model is not actually outputting what we want it to. Measurement bias was a new type of bias that I had never heard of. I think that we don't normally think about the bias of what we are measuring, but rather the bias in how we analyze the data. We often think that the data itself cannot be wrong, but if it is measured improperly/ if we are measuring things we don't mean to measure the data can be flawed.**
 
 
